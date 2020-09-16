@@ -33,6 +33,7 @@ namespace TaxBot
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
+                Logger.Initialize();
                 Application.Run(new MainForm());
             }
         }

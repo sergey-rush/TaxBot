@@ -13,13 +13,21 @@ namespace TaxBot
 {
     public partial class MainForm : Form
     {
+        public bool IsCancelled = false;
         private NotifyIcon notifyIcon;
         private MenuItem logMenuItem;
+        private StepList stepList = new StepList();
         public static bool LogEnabled { get; private set; }
 
         public MainForm()
         {
             InitializeComponent();
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            //var list = new StepList();
+            //stepList = (StepList)list.OrderBy(x => (int)(x.StepType)).ToList();
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -111,30 +119,29 @@ namespace TaxBot
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            //var result = Task.Run(() => DoWork());
-
-            
-
             if (!bgwMain.IsBusy)
             {
                 progressBar1.Value = 0;
+                IsCancelled = false;
 
                 bgwMain.RunWorkerAsync();
             }
         }
 
-        private void DoWork()
+        private void UpdateLog(string message)
         {
+            if (LogEnabled)
+            {
+                Logger.AppendAction(message);
+            }
 
+            List<string> lines = txbLog.Lines.ToList();
+            lines.Add(message);
+
+            txbLog.Invoke((MethodInvoker)delegate {
+                txbLog.Lines = lines.ToArray();
+            });
         }
-
-        private void Calculate(int i)
-        {
-            Thread.Sleep(1);
-            double pow = Math.Pow(i, i);
-        }
-
-        
 
         private void bgwMain_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -144,11 +151,28 @@ namespace TaxBot
                 return;
             }
 
-            for (int j = 0; j < 100000; j++)
+            int progress = 1;
+            backgroundWorker.ReportProgress(progress);
+            UpdateLog("Operation started");
+
+            foreach (Step step in stepList)
             {
-                Calculate(j);
-                backgroundWorker.ReportProgress((j * 100) / 100000);
+                if (IsCancelled)
+                {
+                    break;
+                }
+
+                Output output = StepProvider.Current.StepInvoke(step);
+
+                if (!IsCancelled)
+                {
+                    UpdateLog(output.Message);
+                    progress += 100 / stepList.Count;
+                    backgroundWorker.ReportProgress(progress);
+                }
             }
+
+            UpdateLog("DoWork process is conpleted");
         }
 
         private void bgwMain_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -158,19 +182,23 @@ namespace TaxBot
 
         private void bgwMain_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            
-
-            MessageBox.Show("Task completed");
+            //MessageBox.Show("Task completed");
+            UpdateLog("RunWorkerCompleted process is completed");
         }
 
         private void btnStop_Click(object sender, EventArgs e)
         {
-
+            bgwMain.CancelAsync();
+            IsCancelled = true;
+            progressBar1.Value = 0;
+            UpdateLog("Operation cancelled by user");
         }
 
         private void btnExit_Click(object sender, EventArgs e)
         {
-
+            Application.Exit();
         }
+
+        
     }
 }

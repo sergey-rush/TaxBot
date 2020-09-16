@@ -60,7 +60,7 @@ namespace TaxBot
 
         private static void ClearDirectory(string logPath)
         {
-            const int MaxFiles = 300;
+            const int MaxFiles = 30;
             var directoryInfo = new DirectoryInfo(logPath);
             FileInfo[] fileInfos = directoryInfo.GetFiles();
             int fileInfosLength = fileInfos.Length;
@@ -78,15 +78,12 @@ namespace TaxBot
         {
             using (var sw = new StreamWriter(p, false, Encoding.Unicode))
             {
-                sw.Write("\t\tDealer Data Service");
-                sw.Write("\r\n");
-                sw.Write("\r\nThis is the system initialized service event procedure");
-                sw.Write("\r\n\tCreated date: " + DateTime.Now);
+                sw.Write("\t\tTax Bot Service");
                 sw.Write("\r\n");
                 sw.Write("\r\nThis is an informational event log only. No user action is required.");
-                sw.Write("\r\n\t-----------------------------------------------------------------------------");
+                sw.Write("\r\n\tCreated date: " + DateTime.Now);
                 sw.Write("\r\n");
-                sw.Write("\r\n\t\tRegistered events:");
+                sw.Write("\r\n\t-----------------------------------------------------------------------------");
                 sw.Write("\r\n");
             }
         }
